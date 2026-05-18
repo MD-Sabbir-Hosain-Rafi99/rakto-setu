@@ -1,15 +1,24 @@
 {
-  "name": "server",
+  "name": "raktosetu-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend API for RaktoSetu blood donation platform",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "echo \"No test specified\" && exit 0"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "blood-donation",
+    "mern",
+    "raktosetu",
+    "nodejs",
+    "express",
+    "mongodb"
+  ],
+  "author": "MD Sabbir Hosain Rafi",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
