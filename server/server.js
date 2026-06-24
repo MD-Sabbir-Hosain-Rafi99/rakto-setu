@@ -1,0 +1,46 @@
+import dns from "dns";
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
+
+
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+
+import authRoutes from "./routes/authRoutes.js";
+import donorRoutes from "./routes/donorRoutes.js";
+import requestRoutes from "./routes/requestRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+
+
+dotenv.config({ path: "./.env" });
+
+console.log("MONGO URI:", process.env.MONGO_URI);
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.send("RaktoSetu API is running...");
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/donors", donorRoutes);
+app.use("/api/requests", requestRoutes);
+app.use("/api/admin", adminRoutes);
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB Connected");
+    console.log("Connected DB:", mongoose.connection.name);
+
+    app.listen(process.env.PORT || 5000, () => {
+      console.log(`Server running on port ${process.env.PORT || 5000}`);
+    });
+  })
+  .catch((error) => {
+    console.log("MongoDB Error:", error.message);
+  });
