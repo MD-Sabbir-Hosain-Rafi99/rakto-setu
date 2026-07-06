@@ -48,6 +48,27 @@ const bloodRequestSchema = new mongoose.Schema(
       enum: ["pending", "accepted", "completed", "expired"],
       default: "pending",
     },
+    acceptedDonor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DonorProfile",
+      default: null,
+    },
+
+    acceptedAt: {
+      type: Date,
+      default: null,
+    },
+
+    completedAt: {
+      type: Date,
+      default: null,
+    },
+
+    donationConfirmedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   { timestamps: true }
 );

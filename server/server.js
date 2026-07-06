@@ -11,6 +11,11 @@ import authRoutes from "./routes/authRoutes.js";
 import donorRoutes from "./routes/donorRoutes.js";
 import requestRoutes from "./routes/requestRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import recommendationRoutes from "./routes/recommendationRoutes.js";
+// AI
+import automationRoutes from "./routes/automationRoutes.js";
+// Telegram Routes
+import telegramRoutes from "./routes/telegramRoutes.js";
 
 
 dotenv.config({ path: "./.env" });
@@ -30,6 +35,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/donors", donorRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/recommendations", recommendationRoutes);
+// AI 
+app.use("/api/automation", automationRoutes);
+app.use("/api/telegram", telegramRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)

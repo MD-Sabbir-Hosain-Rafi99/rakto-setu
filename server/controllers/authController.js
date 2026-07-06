@@ -1,35 +1,82 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import DonorProfile from "../models/DonorProfile.js";
 import generateToken from "../utils/generateToken.js";
 
 export const registerUser = async (req, res) => {
   try {
-    console.log("Register body:", req.body);
+    const {
+      name,
+      email,
+      phone,
+      password,
+      bloodGroup,
+      district,
+      area,
+      lastDonationDate,
+      showContact = true,
+      latitude,
+      longitude,
+    } = req.body;
 
-    const { name, email, phone, password, role } = req.body;
-
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
+    if (!name || !phone || !password || !bloodGroup || !district || !area) {
       return res.status(400).json({
-        message: "User already exists",
+        message:
+          "Name, phone, password, blood group, district, and area are required",
       });
+    }
+
+    const existingPhone = await User.findOne({ phone });
+
+    if (existingPhone) {
+      return res.status(400).json({
+        message: "Phone number already exists",
+      });
+    }
+
+    if (email && email.trim() !== "") {
+      const existingEmail = await User.findOne({
+        email: email.toLowerCase().trim(),
+      });
+
+      if (existingEmail) {
+        return res.status(400).json({
+          message: "Email already exists",
+        });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const userData = {
       name,
-      email,
       phone,
       password: hashedPassword,
-      role: role || "user",
+      role: "donor",
+    };
+
+    if (email && email.trim() !== "") {
+      userData.email = email.toLowerCase().trim();
+    }
+
+    const user = await User.create(userData);
+
+    const donorProfile = await DonorProfile.create({
+      user: user._id,
+      bloodGroup,
+      district,
+      area,
+      lastDonationDate: lastDonationDate || null,
+      availability: "available",
+      isVerified: false,
+      verificationStatus: "pending",
+      showContact,
+      latitude: latitude || null,
+      longitude: longitude || null,
     });
 
-    console.log("User saved:", user);
-
     res.status(201).json({
-      message: "Registration successful",
+      message: "Registration successful. Your donor profile is pending admin verification.",
       user: {
         id: user._id,
         name: user.name,
@@ -37,6 +84,7 @@ export const registerUser = async (req, res) => {
         phone: user.phone,
         role: user.role,
       },
+      donorProfile,
       token: generateToken(user._id, user.role),
     });
   } catch (error) {
@@ -50,15 +98,29 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    console.log("Login body:", req.body);
+    const { identifier, email, phone, password } = req.body;
 
-    const { email, password } = req.body;
+    const loginId = identifier || email || phone;
 
-    const user = await User.findOne({ email });
+    if (!loginId || !password) {
+      return res.status(400).json({
+        message: "Phone/email and password are required",
+      });
+    }
+
+    const user = await User.findOne({
+      $or: [{ email: loginId.toLowerCase() }, { phone: loginId }],
+    });
 
     if (!user) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: "Invalid phone/email or password",
+      });
+    }
+
+    if (user.accountStatus === "suspended") {
+      return res.status(403).json({
+        message: "Your account is suspended",
       });
     }
 
@@ -66,7 +128,7 @@ export const loginUser = async (req, res) => {
 
     if (!isMatch) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: "Invalid phone/email or password",
       });
     }
 

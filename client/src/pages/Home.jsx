@@ -1,15 +1,24 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { toast } from "react-toastify";
 
 const Home = () => {
   const [requests, setRequests] = useState([]);
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         const res = await api.get("/requests");
-        setRequests(res.data);
+
+        const activeRequests = res.data.filter((request) =>
+          ["pending", "accepted"].includes(request.status)
+        );
+
+        setRequests(activeRequests);
       } catch (error) {
         console.log(error.response?.data || error.message);
       }
@@ -22,6 +31,24 @@ const Home = () => {
     if (level === "critical") return "bg-red-600";
     if (level === "urgent") return "bg-orange-500";
     return "bg-green-600";
+  };
+
+  const handleWhatsAppContact = (contactNumber) => {
+
+    if (!token) {
+
+      toast.warning(
+        "Please login or register first to contact the requester."
+      );
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1800);
+
+      return;
+    }
+
+    window.open(`https://wa.me/88${contactNumber}`, "_blank");
   };
 
   return (
@@ -65,9 +92,7 @@ const Home = () => {
                 className="bg-white shadow-lg rounded-xl p-6 border"
               >
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-2xl font-bold">
-                    {request.bloodGroup}
-                  </h3>
+                  <h3 className="text-2xl font-bold">{request.bloodGroup}</h3>
 
                   <span
                     className={`${getBadgeColor(
@@ -98,14 +123,12 @@ const Home = () => {
                   <strong>Status:</strong> {request.status}
                 </p>
 
-                <a
-                  href={`https://wa.me/88${request.contactNumber}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() => handleWhatsAppContact(request.contactNumber)}
                   className="inline-block mt-5 bg-green-600 text-white px-4 py-2 rounded-lg"
                 >
                   WhatsApp Contact
-                </a>
+                </button>
               </div>
             ))}
           </div>
